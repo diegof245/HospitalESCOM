@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/froy/Projects/HospitalESCOM/HospitalESCOM.csproj",
+      "projectUniqueName": "/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/HospitalESCOM.csproj",
       "projectName": "HospitalESCOM",
-      "projectPath": "/Users/froy/Projects/HospitalESCOM/HospitalESCOM.csproj",
+      "projectPath": "/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/HospitalESCOM.csproj",
       "packagesPath": "/Users/froy/.nuget/packages/",
-      "outputPath": "/Users/froy/Projects/HospitalESCOM/obj/",
+      "outputPath": "/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/froy/.nuget/NuGet/NuGet.Config"
