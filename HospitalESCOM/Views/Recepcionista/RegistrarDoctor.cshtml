@@ -1,0 +1,102 @@
+@model HospitalApp.Models.DoctorViewModel
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Registrar Nuevo Médico - Panel de Recepción</h4>
+        </div>
+        <div class="card-body">
+            
+            @if (ViewBag.Message != null)
+            {
+                <div class="alert alert-success">@ViewBag.Message</div>
+            }
+
+            <form asp-action="RegistrarDoctor" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <h5 class="text-secondary border-bottom pb-2">1. Datos Personales</h5>
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Nombre(s)</label>
+                        <input asp-for="Nombre" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Apellido Paterno</label>
+                        <input asp-for="ApellidoPaterno" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Apellido Materno</label>
+                        <input asp-for="ApellidoMaterno" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Fecha de Nacimiento</label>
+                        <input asp-for="FechaNacimiento" type="date" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Teléfono</label>
+                        <input asp-for="Telefono" class="form-control" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Correo Electrónico</label>
+                        <input asp-for="Correo" type="email" class="form-control" />
+                    </div>
+                </div>
+
+                <h5 class="text-secondary border-bottom pb-2">2. Credenciales del Sistema</h5>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Nombre de Usuario (Acceso)</label>
+                        <input asp-for="NombreUsuario" class="form-control" placeholder="Ej. dr_gomez" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contraseña Temporal</label>
+                        <input asp-for="Password" type="password" class="form-control" required />
+                    </div>
+                </div>
+
+                <h5 class="text-secondary border-bottom pb-2">3. Datos Laborales y de Especialidad</h5>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label">ID Especialidad</label>
+                        <input asp-for="IdEspecialidad" type="number" class="form-control" placeholder="Ej. 1" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Cédula Profesional</label>
+                        <input asp-for="Cedula" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Salario Mensual</label>
+                        <input asp-for="Salario" type="number" class="form-control" required />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Turno asignado</label>
+                        <select asp-for="Turno" class="form-select" required>
+                            <option value="Matutino">Matutino</option>
+                            <option value="Vespertino">Vespertino</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Hora de Inicio de Turno</label>
+                        <input asp-for="HoraInicio" type="time" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Hora de Fin de Turno</label>
+                        <input asp-for="HoraFin" type="time" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-success px-4">Guardar Médico</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>

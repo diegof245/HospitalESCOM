@@ -18,12 +18,20 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = /Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM
 build_property._RazorSourceGeneratorDebug = 
 
+[/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/Views/Recepcionista/RegistrarDoctor.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVjZXBjaW9uaXN0YS9SZWdpc3RyYXJEb2N0b3IuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/froy/Documents/GitHub/HospitalESCOM/HospitalESCOM/Views/Shared/Error.cshtml]
