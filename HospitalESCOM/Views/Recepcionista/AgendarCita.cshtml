@@ -1,0 +1,95 @@
+@model HospitalApp.Models.CitaViewModel
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-bold">📅 Formulario de Agendamiento de Citas Médicas</h5>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
+                            🎉 @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <form asp-action="AgendarCita" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger p-3 fw-bold small"></div>
+                        
+                        <input type="hidden" asp-for="IdRecepcionista" />
+
+                        <h6 class="text-primary fw-bold mb-3"><i class="bi bi-person-badge"></i> 1. Selección de Personal y Paciente</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">Paciente</label>
+                                <select asp-for="IdPaciente" class="form-select" required>
+                                    <option value="">-- Seleccione un Paciente --</option>
+                                    @foreach (var p in ViewBag.Pacientes)
+                                    {
+                                        <option value="@p.Id">@p.Nombre (ID: @p.Id)</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">Médico Especialista</label>
+                                <select asp-for="IdDoctor" class="form-select" required>
+                                    <option value="">-- Seleccione un Doctor --</option>
+                                    @foreach (var d in ViewBag.Doctores)
+                                    {
+                                        <option value="@d.Id">@d.Info</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Consultorio</label>
+                                <select asp-for="IdConsultorio" class="form-select" required>
+                                    <option value="">-- No. --</option>
+                                    @foreach (var c in ViewBag.Consultorios)
+                                    {
+                                        <option value="@c">@c</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="text-primary fw-bold mb-3"><i class="bi bi-clock"></i> 2. Control de Tiempos e Importe</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Fecha Programada</label>
+                                <input asp-for="Fecha" type="date" class="form-control" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Hora de Entrada</label>
+                                <input asp-for="HoraInicio" type="time" class="form-control" required />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Hora de Salida</label>
+                                <input asp-for="HoraFin" type="time" class="form-control" required />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-semibold">Costo ($)</label>
+                                <input asp-for="Costo" type="number" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between border-top pt-3">
+                            <a href="@Url.Action("Index", "Recepcionista")" class="btn btn-light border px-4">
+                                Regresar al Panel
+                            </a>
+                            <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm">
+                                Validar y Pre-Agendar Cita
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

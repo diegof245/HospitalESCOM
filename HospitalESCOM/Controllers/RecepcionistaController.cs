@@ -14,16 +14,130 @@ namespace HospitalApp.Controllers
             _connectionString = configuration.GetConnectionString("ConexionHospital")!;
         }
 
-        // GET: /Recepcionista/RegistrarDoctor
         [HttpGet]
-        public IActionResult RegistrarDoctor()
+        public IActionResult Index()
         {
-            // Aquí idealmente cargarías la lista de especialidades de la BD para el ComboBox
-            // Por ahora, pasaremos una simulación simple o puedes dejar el campo numérico directo
+            ViewBag.NombreUsuario = HttpContext.Session.GetString("UserRole") ?? "Recepcionista";
             return View();
         }
 
-        // POST: /Recepcionista/RegistrarDoctor
+        [HttpGet]
+        public IActionResult AgendarCita()
+        {
+            var pacientes = new List<dynamic>();
+            var doctores = new List<dynamic>();
+            var consultorios = new List<int>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                // 1. Obtener lista de Pacientes (Blindado contra nulos)
+                string queryPacientes = @"SELECT p.IdPaciente, per.Nombre + ' ' + per.ApellidoPaterno AS NombreCompleto 
+                                          FROM Paciente p JOIN Persona per ON p.IdPersona = per.IdPersona";
+                using (SqlCommand cmd = new SqlCommand(queryPacientes, conn))
+                using (SqlDataReader r = cmd.ExecuteReader())
+                {
+                    while (r.Read()) {
+                        pacientes.Add(new { 
+                            Id = Convert.ToInt32(r["IdPaciente"]), 
+                            Nombre = r["NombreCompleto"] != DBNull.Value ? r["NombreCompleto"].ToString() : "Sin Nombre" 
+                        });
+                    }
+                }
+
+                string queryDoctores = @"SELECT d.IdDoctor, per.Nombre + ' ' + per.ApellidoPaterno + ' (' + esp.Nombre + ')' AS DocInfo 
+                                          FROM Doctor d 
+                                          JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado
+                                          JOIN Persona per ON e.IdPersona = per.IdPersona
+                                          JOIN Especialidad esp ON d.IdEspecialidad = esp.IdEspecialidad";
+                using (SqlCommand cmd = new SqlCommand(queryDoctores, conn))
+                using (SqlDataReader r = cmd.ExecuteReader())
+                {
+                    while (r.Read()) {
+                        doctores.Add(new { Id = Convert.ToInt32(r["IdDoctor"]), Info = r["DocInfo"].ToString() });
+                    }
+                }
+
+                // 3. Obtener lista de Consultorios
+                string queryConsultorios = "SELECT IdConsultorio, Numero FROM Consultorio WHERE Estado = 1";
+                using (SqlCommand cmd = new SqlCommand(queryConsultorios, conn))
+                using (SqlDataReader r = cmd.ExecuteReader())
+                {
+                    while (r.Read()) {
+                        consultorios.Add(Convert.ToInt32(r["IdConsultorio"]));
+                    }
+                }
+            }
+
+            ViewBag.Pacientes = pacientes;
+            ViewBag.Doctores = doctores;
+            ViewBag.Consultorios = consultorios;
+
+            var model = new CitaViewModel
+            {
+                IdRecepcionista = 1,
+                Fecha = DateTime.Now.AddDays(3),
+                HoraInicio = new TimeSpan(10, 0, 0),
+                HoraFin = new TimeSpan(11, 0, 0),
+                Costo = 400
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult AgendarCita(CitaViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                RecargarCombos();
+                return View(model);
+            }
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                try
+                {
+                    using (SqlCommand cmd = new SqlCommand("sp_AgendarCita", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@IdPaciente", model.IdPaciente);
+                        cmd.Parameters.AddWithValue("@IdRecepcionista", model.IdRecepcionista);
+                        cmd.Parameters.AddWithValue("@IdDoctor", model.IdDoctor);
+                        cmd.Parameters.AddWithValue("@IdConsultorio", model.IdConsultorio);
+                        cmd.Parameters.AddWithValue("@Fecha", model.Fecha);
+                        cmd.Parameters.AddWithValue("@HoraInicio", model.HoraInicio);
+                        cmd.Parameters.AddWithValue("@HoraFin", model.HoraFin);
+                        cmd.Parameters.AddWithValue("@Costo", model.Costo);
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery(); 
+                        
+                        TempData["SuccessMessage"] = "¡Cita Pre-Agendada con éxito! El paciente tiene un límite de 8 horas para realizar su pago.";
+                        return RedirectToAction("AgendarCita");
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    ModelState.AddModelError(string.Empty, "Error de Validación: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError(string.Empty, "Ocurrió un error inesperado: " + ex.Message);
+                }
+            }
+
+            RecargarCombos();
+            return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult RegistrarDoctor()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult RegistrarDoctor(DoctorViewModel model)
         {
@@ -32,12 +146,10 @@ namespace HospitalApp.Controllers
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
                 conn.Open();
-                // Iniciamos una transacción para asegurar consistencia en la BD
                 SqlTransaction transaction = conn.BeginTransaction();
 
                 try
                 {
-                    // 1. Insertar en Persona y obtener el IdPersona generado
                     string queryPersona = @"INSERT INTO Persona (Nombre, ApellidoPaterno, ApellidoMaterno, FechaNacimiento, Telefono, Correo) 
                                            VALUES (@Nombre, @ApellidoPaterno, @ApellidoMaterno, @FechaNacimiento, @Telefono, @Correo);
                                            SELECT SCOPE_IDENTITY();";
@@ -55,7 +167,6 @@ namespace HospitalApp.Controllers
                         idPersona = Convert.ToInt32(cmd.ExecuteScalar());
                     }
 
-                    // 2. Insertar en Usuario (Para que el doctor pueda loguearse al sistema)
                     string queryUsuario = @"INSERT INTO Usuario (IdPersona, NombreUsuario, Password, TipoUsuario, Estado) 
                                            VALUES (@IdPersona, @NombreUsuario, @Password, 'Doctor', 1);";
                     using (SqlCommand cmd = new SqlCommand(queryUsuario, conn, transaction))
@@ -66,7 +177,6 @@ namespace HospitalApp.Controllers
                         cmd.ExecuteNonQuery();
                     }
 
-                    // 3. Insertar en Empleado (Puesto 1 representa Doctor en tu Bit del diccionario)
                     string queryEmpleado = @"INSERT INTO Empleado (IdPersona, Puesto, Salario, FechaContratacion, Estatus) 
                                             VALUES (@IdPersona, 1, @Salario, @FechaContratacion, 1);
                                             SELECT SCOPE_IDENTITY();";
@@ -81,7 +191,6 @@ namespace HospitalApp.Controllers
                         idEmpleado = Convert.ToInt32(cmd.ExecuteScalar());
                     }
 
-                    // 4. Insertar en la tabla Doctor final
                     string queryDoctor = @"INSERT INTO Doctor (IdEmpleado, IdEspecialidad, Cedula, Turno, HoraInicio, HoraFin) 
                                           VALUES (@IdEmpleado, @IdEspecialidad, @Cedula, @Turno, @HoraInicio, @HoraFin);";
                     using (SqlCommand cmd = new SqlCommand(queryDoctor, conn, transaction))
@@ -95,7 +204,6 @@ namespace HospitalApp.Controllers
                         cmd.ExecuteNonQuery();
                     }
 
-                    // Si todo sale bien, guardamos cambios en SQL Server
                     transaction.Commit();
                     ViewBag.Message = "¡Doctor y credenciales de acceso registrados con éxito!";
                     return View();
@@ -108,6 +216,40 @@ namespace HospitalApp.Controllers
             }
 
             return View(model);
+        }
+
+        private void RecargarCombos()
+        {
+            var pacientes = new List<dynamic>();
+            var doctores = new List<dynamic>();
+            var consultorios = new List<int>();
+
+            using (SqlConnection conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                
+                string queryPacientes = "SELECT p.IdPaciente, per.Nombre + ' ' + per.ApellidoPaterno AS NombreCompleto FROM Paciente p JOIN Persona per ON p.IdPersona = per.IdPersona";
+                using (SqlCommand cmd = new SqlCommand(queryPacientes, conn))
+                using (SqlDataReader r = cmd.ExecuteReader())
+                    while (r.Read()) pacientes.Add(new { 
+                        Id = Convert.ToInt32(r["IdPaciente"]), 
+                        Nombre = r["NombreCompleto"] != DBNull.Value ? r["NombreCompleto"].ToString() : "Sin Nombre" 
+                    });
+
+                string queryDoctores = "SELECT d.IdDoctor, per.Nombre + ' ' + per.ApellidoPaterno + ' (' + esp.Nombre + ')' AS DocInfo FROM Doctor d JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado JOIN Persona per ON e.IdPersona = per.IdPersona JOIN Especialidad esp ON d.IdEspecialidad = esp.IdEspecialidad";
+                using (SqlCommand cmd = new SqlCommand(queryDoctores, conn))
+                using (SqlDataReader r = cmd.ExecuteReader())
+                    while (r.Read()) doctores.Add(new { Id = Convert.ToInt32(r["IdDoctor"]), Info = r["DocInfo"].ToString() });
+
+                string queryConsultorios = "SELECT IdConsultorio, Numero FROM Consultorio WHERE Estado = 1";
+                using (SqlCommand cmd = new SqlCommand(queryConsultorios, conn))
+                using (SqlDataReader r = cmd.ExecuteReader())
+                    while (r.Read()) consultorios.Add(Convert.ToInt32(r["IdConsultorio"]));
+            }
+
+            ViewBag.Pacientes = pacientes;
+            ViewBag.Doctores = doctores;
+            ViewBag.Consultorios = consultorios;
         }
     }
 }

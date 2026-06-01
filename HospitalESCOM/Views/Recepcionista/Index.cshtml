@@ -1,0 +1,67 @@
+@{
+    ViewData["Title"] = "Panel de Control - Recepción";
+}
+
+<div class="container mt-5">
+    <!-- Encabezado de Bienvenida -->
+    <div class="row mb-4">
+        <div class="col-md-12 text-center text-md-start">
+            <h2 class="display-6 fw-bold text-primary">Sistema Hospitalario ESCOM</h2>
+            <p class="text-muted">Bienvenido al Panel de Control de Recepción. Selecciona una operación para comenzar.</p>
+            <hr />
+        </div>
+    </div>
+
+    <!-- Contenedor de Botones / Tarjetas de Operación -->
+    <div class="row g-4 justify-content-center">
+        
+        <!-- Tarjeta 1: Agendar Citas -->
+        <div class="col-md-5">
+            <div class="card h-100 shadow-sm hover-shadow border-primary">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-primary mb-3"></div>
+                    <h4 class="card-title fw-bold">Gestión de Citas</h4>
+                    <p class="card-text text-muted">Agendar nuevas citas médicas, validar disponibilidad de horarios, consultorios y control de alertas de anticipación.</p>
+                    <a href="@Url.Action("AgendarCita", "Recepcionista")" class="btn btn-primary w-100 py-2 fw-bold">
+                        Ingresar a Citas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Registrar Médicos -->
+        <div class="col-md-5">
+            <div class="card h-100 shadow-sm hover-shadow border-success">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-success mb-3"></div>
+                    <h4 class="card-title fw-bold">Registrar Médico</h4>
+                    <p class="card-text text-muted">Dar de alta nuevos doctores en el sistema, asignarles especialidades médicas, definir su cédula y sus horarios de turno operativo.</p>
+                    <a href="@Url.Action("RegistrarDoctor", "Recepcionista")" class="btn btn-success w-100 py-2 fw-bold">
+                        Ingresar a Médicos
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Nota al pie informativa -->
+    <div class="row mt-5">
+        <div class="col-md-12 text-center">
+            <span class="badge bg-light text-dark p-2 border">
+                Sesión Activa: @ViewBag.NombreUsuario
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Estilo CSS rápido para efecto visual al pasar el mouse por las tarjetas -->
+<style>
+    .hover-shadow {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
