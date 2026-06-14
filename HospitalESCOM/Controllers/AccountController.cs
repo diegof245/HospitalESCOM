@@ -3,6 +3,8 @@ using Microsoft.Data.SqlClient;
 using System.Data;
 using HospitalApp.Models;
 
+//hola mundo
+
 namespace HospitalApp.Controllers
 {
     public class AccountController : Controller
