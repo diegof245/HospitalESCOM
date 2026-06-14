@@ -5,14 +5,14 @@
         <div class="col-md-9">
             <div class="card shadow border-0">
                 <div class="card-header bg-primary text-white py-3">
-                    <h5 class="mb-0 fw-bold">📅 Formulario de Agendamiento de Citas Médicas</h5>
+                    <h5 class="mb-0 fw-bold">Formulario de Agendamiento de Citas Médicas</h5>
                 </div>
                 <div class="card-body p-4">
 
                     @if (TempData["SuccessMessage"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show fw-bold" role="alert">
-                            🎉 @TempData["SuccessMessage"]
+                            @TempData["SuccessMessage"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     }
