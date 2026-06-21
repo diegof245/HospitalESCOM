@@ -1,0 +1,119 @@
+@model HospitalApp.Models.CitaViewModel
+
+@{
+    ViewData["Title"] = "Agendar Cita";
+    var doctoresJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.Doctores);
+    var especialidadesJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.Especialidades);
+}
+
+<div class="container mt-5">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white py-3">
+            <h4 class="mb-0 fw-bold">📅 Agendar Nueva Cita Médica</h4>
+        </div>
+        <div class="card-body p-4">
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger fw-bold"></div>
+
+            <form asp-action="AgendarCita" method="post">
+                <input type="hidden" asp-for="IdPaciente" value="0" />
+                <input type="hidden" asp-for="IdRecepcionista" value="1" />
+                <input type="hidden" asp-for="Costo" id="inputCosto" />
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Especialidad</label>
+                        <select id="selectEspecialidad" class="form-select" required onchange="filtrarDoctores()">
+                            <option value="">Seleccione una especialidad...</option>
+                            @foreach (var esp in ViewBag.Especialidades)
+                            {
+                                <option value="@esp.Id">@esp.Nombre</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Médico</label>
+                        <select asp-for="IdDoctor" id="selectDoctor" class="form-select" required disabled>
+                            <option value="">Primero seleccione especialidad...</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Consultorio</label>
+                        <select asp-for="IdConsultorio" class="form-select" required>
+                            @foreach (var cons in ViewBag.Consultorios)
+                            {
+                                <option value="@cons">Consultorio @cons</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Fecha</label>
+                        <input asp-for="Fecha" type="date" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Hora Inicio</label>
+                        <input asp-for="HoraInicio" type="time" class="form-control" required />
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Hora Fin</label>
+                        <input asp-for="HoraFin" type="time" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-info d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h5 class="mb-1 fw-bold text-info-emphasis">Costo de la Consulta: <span id="displayCosto">$0.00</span></h5>
+                        <p class="mb-0 small text-muted">Dispondrás de un máximo de 8 horas para realizar el pago tras confirmar tu agenda.</p>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a asp-action="Index" class="btn btn-outline-secondary fw-bold px-4">Cancelar</a>
+                    <button type="submit" class="btn btn-success fw-bold px-5">Confirmar y Generar Cita</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const doctores = @Html.Raw(doctoresJson);
+    const especialidades = @Html.Raw(especialidadesJson);
+
+    function filtrarDoctores() {
+        const especialidadId = document.getElementById("selectEspecialidad").value;
+        const selectDoctor = document.getElementById("selectDoctor");
+        const displayCosto = document.getElementById("displayCosto");
+        const inputCosto = document.getElementById("inputCosto");
+
+        selectDoctor.innerHTML = '<option value="">Seleccione un médico...</option>';
+        displayCosto.innerText = "$0.00";
+        inputCosto.value = "0";
+
+        if (!especialidadId) {
+            selectDoctor.disabled = true;
+            return;
+        }
+
+        const especialidadSeleccionada = especialidades.find(e => e.Id == especialidadId);
+        if (especialidadSeleccionada) {
+            displayCosto.innerText = "$" + especialidadSeleccionada.Costo.toFixed(2);
+            inputCosto.value = especialidadSeleccionada.Costo;
+        }
+
+        const doctoresFiltrados = doctores.filter(d => d.IdEspecialidad == especialidadId);
+        doctoresFiltrados.forEach(doc => {
+            const option = document.createElement("option");
+            option.value = doc.Id;
+            option.text = doc.Nombre;
+            selectDoctor.appendChild(option);
+        });
+
+        selectDoctor.disabled = false;
+    }
+</script>

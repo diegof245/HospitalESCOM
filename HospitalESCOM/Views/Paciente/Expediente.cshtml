@@ -1,0 +1,112 @@
+@model HospitalApp.Models.ExpedientePacienteViewModel
+
+@{
+    ViewData["Title"] = "Mi Expediente";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-info">💊 Mi Expediente Médico</h3>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver al Portal</a>
+    </div>
+
+    <div class="card shadow-sm border-info border-top border-4 mb-5">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3 border-bottom pb-2">Información del Paciente</h5>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <p class="mb-1 text-muted small">Nombre Completo</p>
+                    <p class="fw-bold fs-5">@Model.NombreCompleto</p>
+                </div>
+                <div class="col-md-2">
+                    <p class="mb-1 text-muted small">N° Expediente</p>
+                    <p class="fw-bold">@Model.NumeroExpediente</p>
+                </div>
+                <div class="col-md-2">
+                    <p class="mb-1 text-muted small">Tipo de Sangre</p>
+                    <span class="badge bg-danger fs-6">@Model.TipoSangre</span>
+                </div>
+                <div class="col-md-2">
+                    <p class="mb-1 text-muted small">Peso / Estatura</p>
+                    <p class="fw-bold">@Model.Peso kg / @Model.Estatura m</p>
+                </div>
+                <div class="col-md-2">
+                    <p class="mb-1 text-muted small">Alergias Registradas</p>
+                    <p class="fw-bold text-danger">@Model.Alergias</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="fw-bold text-secondary mb-3">Historial de Recetas Emitidas</h4>
+
+    @if (!Model.Recetas.Any())
+    {
+        <div class="alert alert-light border text-center py-4">
+            No tienes recetas médicas registradas en tu historial.
+        </div>
+    }
+    else
+    {
+        <div class="accordion shadow-sm" id="accordionRecetas">
+            @foreach (var receta in Model.Recetas)
+            {
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-@receta.FolioReceta">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-@receta.FolioReceta" aria-expanded="false" aria-controls="collapse-@receta.FolioReceta">
+                            📅 Fecha: @receta.Fecha &nbsp; | &nbsp; 👨‍⚕️ Médico: Dr. @receta.Doctor
+                        </button>
+                    </h2>
+                    <div id="collapse-@receta.FolioReceta" class="accordion-collapse collapse" aria-labelledby="heading-@receta.FolioReceta" data-bs-parent="#accordionRecetas">
+                        <div class="accordion-body bg-light">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-success border-bottom pb-1">Diagnóstico</h6>
+                                    <p class="mb-0">@receta.Diagnostico</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="fw-bold text-warning border-bottom pb-1">Observaciones</h6>
+                                    <p class="mb-0">@receta.Observaciones</p>
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-primary mt-4 border-bottom pb-1">Tratamiento (Medicamentos)</h6>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-bordered table-sm bg-white">
+                                    <thead class="table-primary text-center">
+                                        <tr>
+                                            <th>Medicamento</th>
+                                            <th>Dosis</th>
+                                            <th>Frecuencia</th>
+                                            <th>Duración</th>
+                                            <th>Indicaciones Extra</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-center align-middle">
+                                        @if (!receta.Medicamentos.Any())
+                                        {
+                                            <tr><td colspan="5" class="text-muted">No se recetaron medicamentos.</td></tr>
+                                        }
+                                        else
+                                        {
+                                            foreach (var med in receta.Medicamentos)
+                                            {
+                                                <tr>
+                                                    <td class="fw-bold">@med.NombreMedicamento</td>
+                                                    <td>@med.Dosis</td>
+                                                    <td>@med.Frecuencia</td>
+                                                    <td>@med.DuracionDias días</td>
+                                                    <td class="text-start">@med.Indicaciones</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

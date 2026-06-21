@@ -57,12 +57,18 @@ namespace HospitalApp.Controllers
                                 HttpContext.Session.SetInt32("UserId", usuario.IdUsuario);
 
                                 // Redirección según su rol (Regla de negocio de usuarios)
-                                return usuario.TipoUsuario switch
-                                {
-                                    "Paciente" => RedirectToAction("Index", "Paciente"),
-                                    "Doctor" => RedirectToAction("Index", "Doctor"),
-                                    _ => RedirectToAction("Index", "Recepcionista") // Administrador o Recepcionista
-                                };
+                                switch (usuario.TipoUsuario)
+{
+    case "Recepcionista":
+        return RedirectToAction("Index", "Recepcionista");
+    case "Doctor":
+        // Asegúrate de que apunte al controlador Doctor que acabamos de crear
+        return RedirectToAction("Index", "Doctor"); 
+    case "Paciente":
+        return RedirectToAction("Index", "Paciente");
+    default:
+        return RedirectToAction("Index", "Home");
+}
                             }
                         }
                     }

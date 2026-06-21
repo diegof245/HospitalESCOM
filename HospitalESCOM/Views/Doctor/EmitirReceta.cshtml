@@ -1,0 +1,42 @@
+@model HospitalApp.Models.RecetaFormViewModel
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">📝 Emitir Receta Médica - Paciente: @Model.Paciente</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="GuardarReceta" method="post">
+                <input type="hidden" asp-for="IdCita" />
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Diagnóstico</label>
+                    <textarea asp-for="Diagnostico" class="form-control" rows="3" required></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Medicamento</label>
+                        <select asp-for="IdMedicamento" class="form-select" required>
+                            <option value="">-- Selecciona --</option>
+                            @foreach (var med in ViewBag.Medicamentos) {
+                                <option value="@med.Id">@med.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Dosis</label>
+                        <input asp-for="Dosis" class="form-control" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Observaciones Adicionales</label>
+                    <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Guardar Receta y Finalizar Consulta</button>
+            </form>
+        </div>
+    </div>
+</div>

@@ -251,5 +251,56 @@ namespace HospitalApp.Controllers
             ViewBag.Doctores = doctores;
             ViewBag.Consultorios = consultorios;
         }
+
+        [HttpGet]
+public IActionResult Caja()
+{
+    // Listamos citas agendadas (Estado 1) pendientes de pago
+    var citasPendientes = new List<dynamic>();
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        string query = @"SELECT c.IdCita, per.Nombre + ' ' + per.ApellidoPaterno AS Paciente, c.Costo 
+                         FROM Cita c 
+                         JOIN Paciente pac ON c.IdPaciente = pac.IdPaciente 
+                         JOIN Persona per ON pac.IdPersona = per.IdPersona 
+                         WHERE c.Estado = 1";
+        conn.Open();
+        using (SqlCommand cmd = new SqlCommand(query, conn))
+        using (SqlDataReader r = cmd.ExecuteReader())
+            while (r.Read()) citasPendientes.Add(new { Id = r["IdCita"], Paciente = r["Paciente"], Costo = r["Costo"] });
+    }
+    return View(citasPendientes);
+}
+
+[HttpPost]
+public IActionResult ProcesarPago(int idCita)
+{
+    try
+    {
+        using (SqlConnection conn = new SqlConnection(_connectionString))
+        {
+            conn.Open();
+            // Asegúrate de que IdUsuario sea un int válido, si tienes sesión, usa el de la sesión
+            int idUsuario = HttpContext.Session.GetInt32("UserId") ?? 1;
+
+            string query = @"UPDATE Cita SET Estado = 2 WHERE IdCita = @IdCita;
+                             INSERT INTO Bitacora (IdCita, IdUsuario, Fecha, Estado, Observacion) 
+                             VALUES (@IdCita, @IdUsuario, GETDATE(), 'Confirmada', 'Pago recibido para cita folio ' + CAST(@IdCita AS VARCHAR));";
+            
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@IdCita", idCita);
+                cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+                cmd.ExecuteNonQuery();
+            }
+        }
+        return RedirectToAction("Caja"); // Esto debe recargar la página
+    }
+    catch (Exception ex)
+    {
+        // Si hay error, en lugar de pantalla en blanco, veremos el error exacto
+        return Content("Error crítico en el cobro: " + ex.Message);
+    }
+}
     }
 }

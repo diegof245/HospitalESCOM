@@ -1,0 +1,58 @@
+@{
+    ViewData["Title"] = "Portal Médico";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12 text-center text-md-start">
+            <h2 class="display-6 fw-bold text-primary">👨‍⚕️ Portal Médico</h2>
+            <p class="text-muted">Bienvenido, Dr(a). @ViewBag.NombreDoctor. Sistema de gestión clínica y agenda.</p>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        
+        <!-- Tarjeta 1: Agenda del Doctor -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-primary hover-shadow">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-primary mb-3">📅</div>
+                    <h5 class="card-title fw-bold">Mi Agenda de Citas</h5>
+                    <p class="card-text text-muted small">Visualiza tus consultas programadas, atiende pacientes y gestiona cancelaciones.</p>
+                    <a href="@Url.Action("Agenda", "Doctor")" class="btn btn-primary w-100 py-2 fw-bold">Ver Agenda</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 2: Historial Médico de Pacientes -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-info hover-shadow">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-info mb-3">🗂️</div>
+                    <h5 class="card-title fw-bold">Historial Clínico</h5>
+                    <p class="card-text text-muted small">Consulta el tipo de sangre, alergias, peso, estatura y padecimientos de tus pacientes.</p>
+                    <a href="@Url.Action("HistorialPacientes", "Doctor")" class="btn btn-info text-white w-100 py-2 fw-bold">Buscar Expedientes</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Perfil del Doctor (Solo Lectura) -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-secondary hover-shadow">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-secondary mb-3">⚕️</div>
+                    <h5 class="card-title fw-bold">Mis Datos Protegidos</h5>
+                    <p class="card-text text-muted small">Visualiza tu número de empleado, cédula profesional, especialidad y turno laboral.</p>
+                    <a href="@Url.Action("MiPerfil", "Doctor")" class="btn btn-secondary w-100 py-2 fw-bold">Ver Mi Perfil</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-shadow { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>

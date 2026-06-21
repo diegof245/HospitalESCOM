@@ -1,0 +1,105 @@
+@model HospitalApp.Models.ComprobanteViewModel
+
+@{
+    ViewData["Title"] = "Comprobante de Cita";
+    Layout = "_Layout"; // Se mantiene el layout para la navegación principal
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            
+            <div class="d-flex justify-content-between mb-3 d-print-none">
+                <a asp-action="Historial" class="btn btn-outline-secondary fw-bold">⬅ Volver al Historial</a>
+                <button onclick="window.print()" class="btn btn-primary fw-bold">🖨️ Imprimir / Guardar PDF</button>
+            </div>
+
+            <div class="card shadow-lg border-2 border-dark" id="ticketComprobante">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h2 class="fw-bold mb-0">HOSPITAL ESCOM</h2>
+                    <p class="mb-0 text-light">Comprobante de Cita Médica</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <div class="row border-bottom pb-4 mb-4">
+                        <div class="col-sm-6 text-center text-sm-start">
+                            <h6 class="text-muted text-uppercase fw-bold mb-1">Folio de Cita</h6>
+                            <h4 class="fw-bold text-danger">#@Model.FolioCita.ToString("D5")</h4>
+                        </div>
+                        <div class="col-sm-6 text-center text-sm-end">
+                            <h6 class="text-muted text-uppercase fw-bold mb-1">Fecha de Emisión</h6>
+                            <p class="fw-bold mb-0">@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-12 bg-light p-3 rounded border">
+                            <h6 class="text-primary fw-bold mb-1">Paciente:</h6>
+                            <h5 class="fw-bold mb-0">@Model.NombrePaciente</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Fecha de la Cita:</h6>
+                            <p class="fw-bold fs-5">@Model.Fecha</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Horario:</h6>
+                            <p class="fw-bold fs-5">@Model.Horario</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Especialidad:</h6>
+                            <p class="fw-bold fs-5">@Model.Especialidad</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-1">Médico Asignado:</h6>
+                            <p class="fw-bold fs-5">Dr. @Model.Doctor</p>
+                        </div>
+
+                        <div class="col-md-12 text-center mt-2">
+                            <h6 class="text-muted mb-1">Consultorio:</h6>
+                            <div class="display-6 fw-bold text-success">@Model.Consultorio</div>
+                        </div>
+                    </div>
+
+                    <div class="border border-2 border-primary rounded p-4 text-center bg-primary bg-opacity-10 mt-4">
+                        <p class="text-muted text-uppercase fw-bold mb-2">Importe a Pagar</p>
+                        <h2 class="fw-bold text-primary mb-3">$@Model.Costo.ToString("0.00") MXN</h2>
+                        
+                        <p class="text-muted text-uppercase fw-bold mb-1">Línea de Pago / Referencia</p>
+                        <h4 class="font-monospace fw-bold tracking-widest border border-dark p-2 bg-white d-inline-block">
+                            @Model.LineaPago
+                        </h4>
+                    </div>
+
+                    <div class="mt-5 border-top pt-4">
+                        <div class="alert alert-warning mb-3">
+                            <strong>⚠️ IMPORTANTE - TIEMPO DE PAGO:</strong> Cuenta con un tiempo límite de <strong>8 horas</strong> a partir de este momento para confirmar el pago de su cita en caja. De lo contrario, el sistema la cancelará automáticamente y liberará el espacio.
+                        </div>
+                        <div class="alert alert-secondary text-dark small">
+                            <h6 class="fw-bold text-decoration-underline mb-2">Política de Cancelación y Reembolso:</h6>
+                            <ul class="mb-0 ps-3">
+                                <li>Con <strong>48 hrs</strong> de anticipación: Devolución del 100% de su pago.</li>
+                                <li>Con <strong>24 hrs</strong> de anticipación: Devolución del 50% de su pago.</li>
+                                <li>Con <strong>menos de 24 hrs</strong>: 0% de su pago.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            </div>
+    </div>
+</div>
+
+<style>
+    /* Estilo para que al imprimir no salga la barra de navegación ni márgenes feos */
+    @@media print {
+        body { padding: 0; margin: 0; background-color: #fff; }
+        nav, footer, .d-print-none { display: none !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .container { max-width: 100% !important; margin: 0 !important; }
+        #ticketComprobante { border: 2px solid #000 !important; page-break-inside: avoid; }
+    }
+    .tracking-widest { letter-spacing: 0.15em; }
+</style>

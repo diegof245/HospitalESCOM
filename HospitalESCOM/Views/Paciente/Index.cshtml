@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Portal del Paciente";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12 text-center text-md-start">
+            <h2 class="display-6 fw-bold text-success">👤 Portal del Paciente</h2>
+            <p class="text-muted">Bienvenido a tu expediente médico digital.</p>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-success hover-shadow">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-success mb-3">🏥</div>
+                    <h5 class="card-title fw-bold">Agendar Nueva Cita</h5>
+                    <p class="card-text text-muted small">Consulta disponibilidad por especialidad y reserva tu consulta médica.</p>
+                    <a href="/Paciente/AgendarCita" class="btn btn-success w-100 py-2 fw-bold">Buscar Horarios</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-primary hover-shadow">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-primary mb-3">📅</div>
+                    <h5 class="card-title fw-bold">Mis Citas Agendadas</h5>
+                    <p class="card-text text-muted small">Visualiza tus citas pendientes, historial y descarga tus comprobantes.</p>
+                    <a href="/Paciente/Historial" class="btn btn-primary w-100 py-2 fw-bold">Ver Historial</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-info hover-shadow">
+                <div class="card-body text-center p-4">
+                    <div class="display-4 text-info mb-3">💊</div>
+                    <h5 class="card-title fw-bold">Expediente y Recetas</h5>
+                    <p class="card-text text-muted small">Revisa tus datos personales, alergias registradas y recetas emitidas.</p>
+                    <a href="/Paciente/Expediente" class="btn btn-info text-white w-100 py-2 fw-bold">Mi Expediente</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-shadow { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .hover-shadow:hover { transform: translateY(-5px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+</style>

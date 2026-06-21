@@ -1,0 +1,132 @@
+@model IEnumerable<HospitalApp.Models.HistorialCitaViewModel>
+
+@{
+    ViewData["Title"] = "Mi Historial de Citas";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-primary">📅 Mis Citas Agendadas</h3>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver al Portal</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success fw-bold">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger fw-bold">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body bg-light">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="fw-bold small">Filtrar por Fecha:</label>
+                    <input type="date" id="filtroFecha" class="form-control" onchange="filtrarTabla()" />
+                </div>
+                <div class="col-md-5">
+                    <label class="fw-bold small">Filtrar por Estatus:</label>
+                    <select id="filtroEstatus" class="form-select" onchange="filtrarTabla()">
+                        <option value="">Todos los estatus</option>
+                        <option value="Pendiente Pago">Pendiente Pago</option>
+                        <option value="Pagada">Pagada</option>
+                        <option value="Cancelada">Cancelada</option>
+                        <option value="Atendida">Atendida</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button class="btn btn-secondary w-100" onclick="limpiarFiltros()">Limpiar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover align-middle bg-white" id="tablaHistorial">
+            <thead class="table-primary text-center">
+                <tr>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Especialidad</th>
+                    <th>Doctor</th>
+                    <th>Cons.</th>
+                    <th>Costo</th>
+                    <th>Estatus</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                @foreach (var cita in Model)
+                {
+                    <tr class="fila-cita" data-fecha="@cita.Fecha" data-estatus="@cita.EstadoDescripcion">
+                        <td class="fw-bold text-muted">#@cita.IdCita.ToString("D4")</td>
+                        <td>@cita.Fecha</td>
+                        <td>@cita.HoraInicio</td>
+                        <td>@cita.Especialidad</td>
+                        <td>@cita.NombreDoctor</td>
+                        <td>@cita.Consultorio</td>
+                        <td class="fw-bold text-success">$@cita.Costo.ToString("0.00")</td>
+                        <td>
+                            @{
+                                string badgeClass = cita.EstadoCita switch {
+                                    1 => "bg-warning text-dark",
+                                    2 => "bg-success",
+                                    4 => "bg-danger",
+                                    5 => "bg-danger",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <span class="badge @badgeClass">@cita.EstadoDescripcion</span>
+                        </td>
+                        <td>
+    <div class="d-flex gap-2 justify-content-center">
+        <a href="@Url.Action("Comprobante", "Paciente", new { idCita = cita.IdCita })" class="btn btn-sm btn-outline-info fw-bold">
+            📄 Ticket
+        </a>
+
+        @if (cita.EstadoCita == 1 || cita.EstadoCita == 2)
+        {
+            <form asp-action="CancelarCitaHistorial" method="post" onsubmit="return confirm('¿Estás seguro de que deseas cancelar esta cita? Aplica política de reembolso dependiendo la anticipación.');">
+                <input type="hidden" name="idCita" value="@cita.IdCita" />
+                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Cancelar</button>
+            </form>
+        }
+    </div>
+</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function filtrarTabla() {
+        const fechaFiltro = document.getElementById('filtroFecha').value;
+        const estatusFiltro = document.getElementById('filtroEstatus').value.toLowerCase();
+        const filas = document.querySelectorAll('.fila-cita');
+
+        filas.forEach(fila => {
+            const fechaCita = fila.getAttribute('data-fecha');
+            const estatusCita = fila.getAttribute('data-estatus').toLowerCase();
+
+            let mostrarPorFecha = fechaFiltro === '' || fechaCita === fechaFiltro;
+            let mostrarPorEstatus = estatusFiltro === '' || estatusCita.includes(estatusFiltro);
+
+            if (mostrarPorFecha && mostrarPorEstatus) {
+                fila.style.display = '';
+            } else {
+                fila.style.display = 'none';
+            }
+        });
+    }
+
+    function limpiarFiltros() {
+        document.getElementById('filtroFecha').value = '';
+        document.getElementById('filtroEstatus').value = '';
+        filtrarTabla();
+    }
+</script>

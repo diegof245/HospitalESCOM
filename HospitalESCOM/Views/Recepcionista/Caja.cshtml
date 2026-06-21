@@ -1,0 +1,25 @@
+@model IEnumerable<dynamic>
+
+<div class="container mt-5">
+    <h3 class="fw-bold text-primary">💵 Punto de Venta (Caja)</h3>
+    <table class="table table-hover mt-4">
+        <thead class="table-dark">
+            <tr><th>Folio</th><th>Paciente</th><th>Monto</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) {
+                <tr>
+                    <td>#@item.Id</td>
+                    <td>@item.Paciente</td>
+                    <td class="text-success fw-bold">$@item.Costo</td>
+                    <td>
+                        <form action="/Recepcionista/ProcesarPago" method="post">
+                            <input type="hidden" name="idCita" value="@item.Id" />
+                            <button type="submit" class="btn btn-success">Registrar Pago</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

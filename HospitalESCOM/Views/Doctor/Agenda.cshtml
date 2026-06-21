@@ -1,0 +1,21 @@
+@model IEnumerable<HospitalApp.Models.AgendaDoctorViewModel>
+<div class="container mt-5">
+    <h3 class="fw-bold text-primary">📅 Agenda de Hoy</h3>
+    <table class="table mt-4 shadow-sm">
+        <thead class="table-dark">
+            <tr><th>Hora</th><th>Paciente</th><th>Estado</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model) {
+                <tr>
+                    <td>@item.Hora</td>
+                    <td>@item.Paciente</td>
+                    <td><span class="badge bg-info">@item.Estado</span></td>
+                    <td>
+                        <a asp-action="EmitirReceta" asp-route-idCita="@item.IdCita" class="btn btn-sm btn-success">Atender / Recetar</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
