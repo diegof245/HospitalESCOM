@@ -14,7 +14,7 @@ namespace HospitalApp.Controllers
         // El constructor inyecta la configuración del appsettings.json
         public AccountController(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("ConexionHospital");
+            _connectionString = configuration.GetConnectionString("ConexionHospital")!;
         }
 
         // GET: /Account/Login
