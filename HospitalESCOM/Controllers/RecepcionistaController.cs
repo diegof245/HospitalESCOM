@@ -251,56 +251,113 @@ namespace HospitalApp.Controllers
             ViewBag.Doctores = doctores;
             ViewBag.Consultorios = consultorios;
         }
-
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         [HttpGet]
-public IActionResult Caja()
+public IActionResult ModuloCobros()
 {
-    // Listamos citas agendadas (Estado 1) pendientes de pago
-    var citasPendientes = new List<dynamic>();
-    using (SqlConnection conn = new SqlConnection(_connectionString))
+    var lista = new List<CajaViewModel>();
+    try 
     {
-        string query = @"SELECT c.IdCita, per.Nombre + ' ' + per.ApellidoPaterno AS Paciente, c.Costo 
-                         FROM Cita c 
-                         JOIN Paciente pac ON c.IdPaciente = pac.IdPaciente 
-                         JOIN Persona per ON pac.IdPersona = per.IdPersona 
-                         WHERE c.Estado = 1";
-        conn.Open();
-        using (SqlCommand cmd = new SqlCommand(query, conn))
-        using (SqlDataReader r = cmd.ExecuteReader())
-            while (r.Read()) citasPendientes.Add(new { Id = r["IdCita"], Paciente = r["Paciente"], Costo = r["Costo"] });
+        using (SqlConnection conn = new SqlConnection(_connectionString)) 
+        {
+            conn.Open();
+            // Buscamos las citas cuyo IdCita NO tenga un estado 'Confirmada' en la Bitácora
+            string query = @"SELECT c.IdCita, p.Nombre + ' ' + p.ApellidoPaterno AS Paciente, c.Costo 
+                             FROM Cita c 
+                             JOIN Paciente pac ON c.IdPaciente = pac.IdPaciente
+                             JOIN Persona p ON pac.IdPersona = p.IdPersona
+                             WHERE c.IdCita NOT IN (
+                                 SELECT IdCita FROM Bitacora WHERE Estado = 'Confirmada'
+                             )";
+            
+            using (SqlCommand cmd = new SqlCommand(query, conn))
+            using (SqlDataReader r = cmd.ExecuteReader()) 
+            {
+                while (r.Read()) 
+                {
+                    lista.Add(new CajaViewModel {
+                        IdCita = Convert.ToInt32(r["IdCita"]),
+                        Paciente = r["Paciente"].ToString()!,
+                        Costo = Convert.ToDecimal(r["Costo"])
+                    });
+                }
+            }
+        }
+    } 
+    catch (Exception ex) 
+    {
+        ViewBag.ErrorCritico = "Error SQL al cargar Caja: " + ex.Message;
     }
-    return View(citasPendientes);
+    
+    return View(lista);
 }
 
 [HttpPost]
-public IActionResult ProcesarPago(int idCita)
+public IActionResult EjecutarCobro(int idCitaPost)
 {
+    try 
+    {
+        using (SqlConnection conn = new SqlConnection(_connectionString)) 
+        {
+            conn.Open();
+            // Insertamos el estado 'Confirmada' en la bitácora para asentar el pago
+            string query = @"INSERT INTO Bitacora (IdCita, IdUsuario, Fecha, Estado, Observacion) 
+                             VALUES (@Id, 1, GETDATE(), 'Confirmada', 'Cita pagada en ventanilla de caja');";
+            
+            using (SqlCommand cmd = new SqlCommand(query, conn)) 
+            {
+                cmd.Parameters.AddWithValue("@Id", idCitaPost);
+                cmd.ExecuteNonQuery();
+            }
+        }
+        TempData["MensajeExito"] = "¡Cita #" + idCitaPost + " cobrada y confirmada con éxito!";
+    } 
+    catch (Exception ex) 
+    {
+        TempData["MensajeError"] = "Fallo al registrar pago en Bitácora: " + ex.Message;
+    }
+    
+    return RedirectToAction("ModuloCobros");
+}
+
+[HttpGet]
+public IActionResult Bitacora()
+{
+    var historial = new List<BitacoraViewModel>();
     try
     {
         using (SqlConnection conn = new SqlConnection(_connectionString))
         {
             conn.Open();
-            // Asegúrate de que IdUsuario sea un int válido, si tienes sesión, usa el de la sesión
-            int idUsuario = HttpContext.Session.GetInt32("UserId") ?? 1;
-
-            string query = @"UPDATE Cita SET Estado = 2 WHERE IdCita = @IdCita;
-                             INSERT INTO Bitacora (IdCita, IdUsuario, Fecha, Estado, Observacion) 
-                             VALUES (@IdCita, @IdUsuario, GETDATE(), 'Confirmada', 'Pago recibido para cita folio ' + CAST(@IdCita AS VARCHAR));";
+            string query = @"SELECT IdBitacora, IdCita, IdUsuario, Fecha, Estado, Observacion 
+                             FROM Bitacora 
+                             ORDER BY Fecha DESC";
             
             using (SqlCommand cmd = new SqlCommand(query, conn))
+            using (SqlDataReader r = cmd.ExecuteReader())
             {
-                cmd.Parameters.AddWithValue("@IdCita", idCita);
-                cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
-                cmd.ExecuteNonQuery();
+                while (r.Read())
+                {
+                    historial.Add(new BitacoraViewModel
+                    {
+                        IdBitacora = Convert.ToInt32(r["IdBitacora"]),
+                        IdCita = r["IdCita"] != DBNull.Value ? Convert.ToInt32(r["IdCita"]) : (int?)null,
+                        IdUsuario = Convert.ToInt32(r["IdUsuario"]),
+                        Fecha = Convert.ToDateTime(r["Fecha"]),
+                        Estado = r["Estado"].ToString()!,
+                        Observacion = r["Observacion"].ToString()!
+                    });
+                }
             }
         }
-        return RedirectToAction("Caja"); // Esto debe recargar la página
     }
     catch (Exception ex)
     {
-        // Si hay error, en lugar de pantalla en blanco, veremos el error exacto
-        return Content("Error crítico en el cobro: " + ex.Message);
+        ViewBag.ErrorCritico = "Error SQL al cargar auditoría: " + ex.Message;
     }
+
+    return View(historial);
 }
+
     }
 }

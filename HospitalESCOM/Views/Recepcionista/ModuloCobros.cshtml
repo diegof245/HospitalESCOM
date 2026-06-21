@@ -1,0 +1,57 @@
+@model List<HospitalApp.Models.CajaViewModel>
+
+<div class="container mt-5">
+    <h2 class="fw-bold text-success">💰 Módulo de Caja</h2>
+    <a href="@Url.Action("Index", "Recepcionista")" class="btn btn-outline-secondary fw-bold">
+            ⬅️ Volver al Panel
+        </a>
+    <hr />
+
+    @if (TempData["MensajeExito"] != null) {
+        <div class="alert alert-success fw-bold">@TempData["MensajeExito"]</div>
+    }
+    @if (TempData["MensajeError"] != null) {
+        <div class="alert alert-danger fw-bold">@TempData["MensajeError"]</div>
+    }
+    @if (ViewBag.ErrorCritico != null) {
+        <div class="alert alert-dark">@ViewBag.ErrorCritico</div>
+    }
+
+    <table class="table table-bordered table-striped mt-4 shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Folio de Cita</th>
+                <th>Paciente</th>
+                <th>Importe</th>
+                <th>Acción de Caja</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var cita in Model)
+                {
+                    <tr>
+                        <td class="fw-bold">#@cita.IdCita</td>
+                        <td>@cita.Paciente</td>
+                        <td class="text-success fw-bold">$@cita.Costo</td>
+                        <td>
+                            <form action="/Recepcionista/EjecutarCobro" method="POST">
+                                <input type="hidden" name="idCitaPost" value="@cita.IdCita" />
+                                <button type="submit" class="btn btn-success fw-bold w-100">
+                                    Cobrar Consulta
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">No hay pacientes pendientes de pago en este momento.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
