@@ -31,54 +31,54 @@ namespace HospitalApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult MiPerfil()
+public IActionResult MiPerfil()
+{
+    int? userId = HttpContext.Session.GetInt32("UserId");
+    if (userId == null) return RedirectToAction("Login", "Account");
+
+    var modelo = new PerfilDoctorViewModel();
+
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        // 1. Ajustamos la consulta para traer Teléfono y Correo reales
+        // 2. Concatenamos la hora de inicio y fin para armar el 'Turno'
+        string query = @"
+            SELECT e.IdEmpleado, 
+                   per.Nombre + ' ' + per.ApellidoPaterno + ' ' + ISNULL(per.ApellidoMaterno, '') AS NombreCompleto,
+                   ISNULL(per.Telefono, 'Sin Registro') AS Telefono, 
+                   ISNULL(per.Correo, 'Sin Registro') AS Correo,
+                   d.Cedula, 
+                   esp.Nombre AS Especialidad, 
+                   CAST(d.HoraInicio AS VARCHAR(5)) + ' a ' + CAST(d.HoraFin AS VARCHAR(5)) AS Turno
+            FROM Doctor d
+            JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado
+            JOIN Persona per ON e.IdPersona = per.IdPersona
+            JOIN Especialidad esp ON d.IdEspecialidad = esp.IdEspecialidad
+            JOIN Usuario u ON u.IdPersona = per.IdPersona
+            WHERE u.IdUsuario = @IdUsuario";
+
+        using (SqlCommand cmd = new SqlCommand(query, conn))
         {
-            int? userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null) return RedirectToAction("Login", "Account");
-
-            var modelo = new PerfilDoctorViewModel();
-
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            cmd.Parameters.AddWithValue("@IdUsuario", userId.Value);
+            conn.Open();
+            using (SqlDataReader r = cmd.ExecuteReader())
             {
-                // Ajustamos la consulta para usar los nombres reales de las columnas 
-                // y rellenamos CURP y Universidad con valores por defecto
-                string query = @"
-                    SELECT CAST(e.IdEmpleado AS VARCHAR) AS NumeroEmpleado, 
-                           per.Nombre + ' ' + per.ApellidoPaterno + ' ' + ISNULL(per.ApellidoMaterno, '') AS NombreCompleto,
-                           'No registrada' AS Curp, 
-                           d.Cedula AS CedulaProfesional, 
-                           esp.Nombre AS Especialidad, 
-                           'IPN - Escuela Superior de Medicina' AS Universidad,
-                           CAST(d.HoraInicio AS VARCHAR(5)) + ' a ' + CAST(d.HoraFin AS VARCHAR(5)) AS HorarioLaboral
-                    FROM Doctor d
-                    JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado
-                    JOIN Persona per ON e.IdPersona = per.IdPersona
-                    JOIN Especialidad esp ON d.IdEspecialidad = esp.IdEspecialidad
-                    JOIN Usuario u ON u.IdPersona = per.IdPersona
-                    WHERE u.IdUsuario = @IdUsuario";
-
-                using (SqlCommand cmd = new SqlCommand(query, conn))
+                if (r.Read())
                 {
-                    cmd.Parameters.AddWithValue("@IdUsuario", userId.Value);
-                    conn.Open();
-                    using (SqlDataReader r = cmd.ExecuteReader())
-                    {
-                        if (r.Read())
-                        {
-                            modelo.NumeroEmpleado = r["NumeroEmpleado"].ToString()!;
-                            modelo.NombreCompleto = r["NombreCompleto"].ToString()!.Trim();
-                            modelo.Curp = r["Curp"].ToString()!;
-                            modelo.CedulaProfesional = r["CedulaProfesional"].ToString()!;
-                            modelo.Especialidad = r["Especialidad"].ToString()!;
-                            modelo.Universidad = r["Universidad"].ToString()!;
-                            modelo.HorarioLaboral = r["HorarioLaboral"].ToString()!;
-                        }
-                    }
+                    modelo.IdEmpleado = Convert.ToInt32(r["IdEmpleado"]);
+                    modelo.NombreCompleto = r["NombreCompleto"].ToString()!.Trim();
+                    modelo.Telefono = r["Telefono"].ToString()!;
+                    modelo.Correo = r["Correo"].ToString()!;
+                    modelo.Cedula = r["Cedula"].ToString()!;
+                    modelo.Especialidad = r["Especialidad"].ToString()!;
+                    modelo.Turno = r["Turno"].ToString()!;
                 }
             }
-
-            return View(modelo);
         }
+    }
+
+    return View(modelo);
+}
 
         [HttpGet]
 public IActionResult Agenda()
@@ -157,6 +157,74 @@ public IActionResult GuardarReceta(RecetaFormViewModel model)
     return RedirectToAction("Agenda");
 }
 
+[HttpGet]
+public IActionResult HistorialClinico(string filtro)
+{
+    int idUsuario = HttpContext.Session.GetInt32("UserId") ?? 1; // Ajusta si usas otro nombre de sesión
+    var historial = new List<dynamic>();
+
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        // 1. Obtenemos el IdDoctor basado en el usuario logueado
+        // 2. Traemos las citas, sacando el último estatus de la Bitácora
+        string query = @"
+            DECLARE @DoctorId INT;
+            SELECT @DoctorId = d.IdDoctor 
+            FROM Doctor d 
+            JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado 
+            JOIN Usuario u ON e.IdPersona = u.IdPersona 
+            WHERE u.IdUsuario = @IdUsuario;
+
+            SELECT c.IdCita AS Folio, c.Fecha, 
+                   ISNULL((SELECT TOP 1 Estado FROM Bitacora b WHERE b.IdCita = c.IdCita ORDER BY Fecha DESC), 'Agendada') AS Estatus,
+                   docPer.Nombre + ' ' + docPer.ApellidoPaterno AS NombreDoctor,
+                   esp.Nombre AS Especialidad,
+                   c.Costo,
+                   pacPer.Nombre + ' ' + pacPer.ApellidoPaterno AS NombrePaciente,
+                   ISNULL(r.Diagnostico, 'Sin diagnóstico registrado') AS Diagnostico
+            FROM Cita c
+            JOIN Paciente p ON c.IdPaciente = p.IdPaciente
+            JOIN Persona pacPer ON p.IdPersona = pacPer.IdPersona
+            JOIN Doctor d ON c.IdDoctor = d.IdDoctor
+            JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado
+            JOIN Persona docPer ON e.IdPersona = docPer.IdPersona
+            JOIN Especialidad esp ON d.IdEspecialidad = esp.IdEspecialidad
+            LEFT JOIN Receta r ON c.IdCita = r.IdCita
+            WHERE d.IdDoctor = @DoctorId
+              AND (@Filtro IS NULL OR @Filtro = '' 
+                   OR pacPer.Nombre LIKE '%' + @Filtro + '%' 
+                   OR pacPer.ApellidoPaterno LIKE '%' + @Filtro + '%'
+                   OR CAST(p.IdPaciente AS VARCHAR) = @Filtro)
+            ORDER BY c.Fecha DESC";
+
+        using (SqlCommand cmd = new SqlCommand(query, conn))
+        {
+            cmd.Parameters.AddWithValue("@IdUsuario", idUsuario);
+            cmd.Parameters.AddWithValue("@Filtro", string.IsNullOrEmpty(filtro) ? DBNull.Value : (object)filtro);
+            
+            conn.Open();
+            using (SqlDataReader r = cmd.ExecuteReader())
+            {
+                while (r.Read())
+                {
+                    historial.Add(new {
+                        Folio = r["Folio"],
+                        Fecha = Convert.ToDateTime(r["Fecha"]).ToString("dd/MM/yyyy"),
+                        Estatus = r["Estatus"].ToString(),
+                        NombreDoctor = r["NombreDoctor"].ToString(),
+                        Especialidad = r["Especialidad"].ToString(),
+                        Costo = Convert.ToDecimal(r["Costo"]),
+                        NombrePaciente = r["NombrePaciente"].ToString(),
+                        Diagnostico = r["Diagnostico"].ToString()
+                    });
+                }
+            }
+        }
+    }
+    
+    ViewBag.FiltroActual = filtro;
+    return View(historial);
+}
 
     }
 }

@@ -1,0 +1,77 @@
+@model List<dynamic>
+
+@{
+    ViewData["Title"] = "Historial Clínico de Pacientes";
+}
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-primary">🩺 Historial Clínico de mis Pacientes</h3>
+        <a href="@Url.Action("Index", "Doctor")" class="btn btn-outline-secondary fw-bold">⬅️ Volver al Portal</a>
+    </div>
+    <hr />
+
+    <div class="card shadow-sm border-0 mb-4 bg-light">
+        <div class="card-body">
+            <form asp-action="HistorialClinico" method="get" class="row align-items-end">
+                <div class="col-md-9">
+                    <label class="form-label fw-bold text-secondary">Buscar por Nombre del Paciente o ID de Expediente:</label>
+                    <input type="text" name="filtro" value="@ViewBag.FiltroActual" class="form-control form-control-lg" placeholder="Ej. Juan Pérez o 3" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold">🔍 Buscar Expediente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <table class="table table-hover table-striped mb-0">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Folio Cita</th>
+                        <th>Fecha</th>
+                        <th>Estatus</th>
+                        <th>Paciente</th>
+                        <th>Diagnóstico (Si aplica)</th>
+                        <th>Costo Consulta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">#@item.Folio</td>
+                                <td>@item.Fecha</td>
+                                <td>
+                                    @if (item.Estatus == "Confirmada" || item.Estatus == "Atendida") {
+                                        <span class="badge bg-success">@item.Estatus</span>
+                                    } else if (item.Estatus == "Cancelada") {
+                                        <span class="badge bg-danger">@item.Estatus</span>
+                                    } else {
+                                        <span class="badge bg-warning text-dark">@item.Estatus</span>
+                                    }
+                                </td>
+                                <td class="fw-bold">@item.NombrePaciente</td>
+                                <td class="small text-muted">@item.Diagnostico</td>
+                                <td class="text-success fw-bold">$@item.Costo</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <h5>No se encontraron registros clínicos.</h5>
+                                <p>@(string.IsNullOrEmpty((string)ViewBag.FiltroActual) ? "Busque un paciente para ver su historial." : "El paciente no existe o no tiene citas registradas con usted.")</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

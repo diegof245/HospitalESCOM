@@ -1,0 +1,41 @@
+@model List<dynamic>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-danger">👨‍⚕️ Gestión y Baja de Médicos</h2>
+        <a href="@Url.Action("Index", "Recepcionista")" class="btn btn-outline-secondary fw-bold">⬅️ Volver al Panel</a>
+    </div>
+    <hr />
+
+    @if (TempData["MensajeExito"] != null) { <div class="alert alert-success fw-bold">@TempData["MensajeExito"]</div> }
+    @if (TempData["MensajeError"] != null) { <div class="alert alert-danger fw-bold">@TempData["MensajeError"]</div> }
+
+    <table class="table table-bordered table-striped mt-4 shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>ID Doctor</th>
+                <th>Nombre Completo</th>
+                <th>Especialidad</th>
+                <th>Cédula</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var doc in Model)
+            {
+                <tr>
+                    <td class="fw-bold">@doc.IdDoctor</td>
+                    <td>@doc.Nombre</td>
+                    <td>@doc.Especialidad</td>
+                    <td>@doc.Cedula</td>
+                    <td>
+                        <form asp-action="BajaDoctor" method="post" onsubmit="return confirm('¿Estás seguro de que deseas dar de baja a este doctor?');">
+                            <input type="hidden" name="idDoctor" value="@doc.IdDoctor" />
+                            <button type="submit" class="btn btn-danger btn-sm fw-bold">Dar de Baja</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

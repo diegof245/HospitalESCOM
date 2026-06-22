@@ -13,7 +13,7 @@
             </div>
 
             <div class="alert alert-warning shadow-sm border-warning mb-4">
-                <strong>🔒 Información Restringida:</strong> Por políticas del Hospital ESCOM, los datos de los empleados, especialidades y cédulas profesionales están bloqueados para edición. Si requiere alguna corrección, acuda a Recursos Humanos.
+                <strong>🔒 Información Restringida:</strong> Por políticas del Hospital, los datos de los empleados, especialidades y cédulas profesionales están bloqueados para edición. Si requiere alguna corrección, acuda a Recursos Humanos.
             </div>
 
             <div class="card shadow-sm border-0">
@@ -23,37 +23,37 @@
                     
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold text-muted small">No. de Empleado</label>
-                            <input class="form-control fw-bold bg-white" value="@Model.NumeroEmpleado" readonly />
+                            <label class="form-label fw-bold text-muted small">No. de Empleado (ID)</label>
+                            <input class="form-control fw-bold bg-white" value="@Model.IdEmpleado" readonly />
                         </div>
                         <div class="col-md-8">
                             <label class="form-label fw-bold text-muted small">Nombre Completo</label>
                             <input class="form-control fw-bold bg-white" value="@Model.NombreCompleto" readonly />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted small">CURP</label>
-                            <input class="form-control bg-white" value="@Model.Curp" readonly />
+                            <label class="form-label fw-bold text-muted small">Teléfono de Contacto</label>
+                            <input class="form-control bg-white" value="@Model.Telefono" readonly />
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-muted small">Turno Laboral Asignado</label>
-                            <input class="form-control text-primary fw-bold bg-white" value="@Model.HorarioLaboral" readonly />
+                            <input class="form-control text-primary fw-bold bg-white" value="@Model.Turno" readonly />
                         </div>
                     </div>
 
-                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4">Credenciales Médicas</h5>
+                    <h5 class="fw-bold text-secondary border-bottom pb-2 mb-4">Credenciales Médicas y Contacto</h5>
 
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold text-muted small">Cédula Profesional</label>
-                            <input class="form-control text-danger fw-bold bg-white" value="@Model.CedulaProfesional" readonly />
+                            <input class="form-control text-danger fw-bold bg-white" value="@Model.Cedula" readonly />
                         </div>
                         <div class="col-md-8">
                             <label class="form-label fw-bold text-muted small">Especialidad Asignada</label>
                             <input class="form-control text-success fw-bold bg-white" value="@Model.Especialidad" readonly />
                         </div>
                         <div class="col-md-12">
-                            <label class="form-label fw-bold text-muted small">Universidad de Egreso</label>
-                            <input class="form-control bg-white" value="@Model.Universidad" readonly />
+                            <label class="form-label fw-bold text-muted small">Correo Electrónico Institucional</label>
+                            <input class="form-control bg-white" value="@Model.Correo" readonly />
                         </div>
                     </div>
 

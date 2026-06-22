@@ -359,5 +359,127 @@ public IActionResult Bitacora()
     return View(historial);
 }
 
+
+[HttpGet]
+public IActionResult GestionDoctores()
+{
+    var doctores = new List<dynamic>();
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        // Solo traemos doctores activos
+        string query = @"SELECT d.IdDoctor, per.Nombre + ' ' + per.ApellidoPaterno AS NombreCompleto, 
+                                esp.Nombre AS Especialidad, d.Cedula
+                         FROM Doctor d
+                         JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado
+                         JOIN Persona per ON e.IdPersona = per.IdPersona
+                         JOIN Especialidad esp ON d.IdEspecialidad = esp.IdEspecialidad
+                         WHERE e.Estatus = 1"; 
+        
+        using (SqlCommand cmd = new SqlCommand(query, conn))
+        using (SqlDataReader r = cmd.ExecuteReader())
+        {
+            while (r.Read()) doctores.Add(new { 
+                IdDoctor = r["IdDoctor"], 
+                Nombre = r["NombreCompleto"], 
+                Especialidad = r["Especialidad"],
+                Cedula = r["Cedula"]
+            });
+        }
+    }
+    return View(doctores);
+}
+
+[HttpPost]
+public IActionResult BajaDoctor(int idDoctor)
+{
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        
+        // REGLA DE NEGOCIO: Verificar que no tenga citas pendientes (Agendadas = 1 o Confirmadas = 2)
+        string checkQuery = "SELECT COUNT(*) FROM Cita WHERE IdDoctor = @IdDoctor AND Estado IN (1, 2)";
+        using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+        {
+            checkCmd.Parameters.AddWithValue("@IdDoctor", idDoctor);
+            int citasPendientes = (int)checkCmd.ExecuteScalar();
+
+            if (citasPendientes > 0)
+            {
+                TempData["MensajeError"] = $"No se puede dar de baja. El doctor tiene {citasPendientes} cita(s) asignada(s) pendiente(s) por atender.";
+                return RedirectToAction("GestionDoctores");
+            }
+        }
+
+        // REGLA DE NEGOCIO: No borrar usuario ni historial, solo baja lógica (Estatus = 0)
+        string bajaQuery = @"UPDATE Empleado SET Estatus = 0 
+                             WHERE IdEmpleado = (SELECT IdEmpleado FROM Doctor WHERE IdDoctor = @IdDoctor)";
+        using (SqlCommand bajaCmd = new SqlCommand(bajaQuery, conn))
+        {
+            bajaCmd.Parameters.AddWithValue("@IdDoctor", idDoctor);
+            bajaCmd.ExecuteNonQuery();
+        }
+    }
+    
+    TempData["MensajeExito"] = "Doctor dado de baja correctamente. Su historial de recetas y citas se mantiene intacto en el sistema.";
+    return RedirectToAction("GestionDoctores");
+}
+
+
+[HttpGet]
+public IActionResult ReporteRecetas(string filtro)
+{
+    var recetas = new List<dynamic>();
+    
+    using (SqlConnection conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        // Búsqueda dinámica por Nombre del Médico o su Cédula
+        string query = @"SELECT r.IdReceta, r.FechaReceta AS Fecha, 
+                        pacPer.Nombre + ' ' + pacPer.ApellidoPaterno AS Paciente,
+                        docPer.Nombre + ' ' + docPer.ApellidoPaterno AS Medico,
+                        r.Diagnostico,
+                        -- Extraemos el Nombre real del Medicamento
+                        ISNULL(STRING_AGG(m.Nombre, ', '), 'Sin medicamentos') AS Medicamentos,
+                        -- Armamos el Tratamiento uniendo Dosis, Frecuencia y Duración
+                        ISNULL(STRING_AGG(dr.Dosis + ' ' + dr.Frecuencia + ' x ' + CAST(dr.Duracion AS VARCHAR) + ' días', ' | '), 'Ninguno') AS Tratamiento
+                 FROM Receta r
+                 JOIN Cita c ON r.IdCita = c.IdCita
+                 JOIN Doctor d ON c.IdDoctor = d.IdDoctor
+                 JOIN Empleado e ON d.IdEmpleado = e.IdEmpleado
+                 JOIN Persona docPer ON e.IdPersona = docPer.IdPersona
+                 JOIN Paciente p ON c.IdPaciente = p.IdPaciente
+                 JOIN Persona pacPer ON p.IdPersona = pacPer.IdPersona
+                 -- Hacemos los JOINs hacia los detalles y el catálogo de medicinas
+                 LEFT JOIN DetalleReceta dr ON r.IdReceta = dr.IdReceta
+                 LEFT JOIN Medicamento m ON dr.IdMedicamento = m.IdMedicamento
+                 WHERE (@Filtro IS NULL OR @Filtro = '' 
+                        OR docPer.Nombre LIKE '%' + @Filtro + '%' 
+                        OR docPer.ApellidoPaterno LIKE '%' + @Filtro + '%'
+                        OR d.Cedula = @Filtro)
+                 GROUP BY r.IdReceta, r.FechaReceta, pacPer.Nombre, pacPer.ApellidoPaterno, docPer.Nombre, docPer.ApellidoPaterno, r.Diagnostico";
+        
+        using (SqlCommand cmd = new SqlCommand(query, conn))
+        {
+            cmd.Parameters.AddWithValue("@Filtro", string.IsNullOrEmpty(filtro) ? DBNull.Value : (object)filtro);
+            using (SqlDataReader r = cmd.ExecuteReader())
+            {
+                while (r.Read()) recetas.Add(new {
+                    NumReceta = r["IdReceta"],
+                    Fecha = Convert.ToDateTime(r["Fecha"]).ToString("dd/MM/yyyy"),
+                    Paciente = r["Paciente"].ToString(),
+                    Medico = r["Medico"].ToString(),
+                    Diagnostico = r["Diagnostico"].ToString(),
+                    Medicamentos = r["Medicamentos"].ToString(),
+                    Tratamiento = r["Tratamiento"].ToString()
+                });
+            }
+        }
+    }
+    
+    ViewBag.FiltroActual = filtro;
+    return View(recetas);
+}
+
     }
 }

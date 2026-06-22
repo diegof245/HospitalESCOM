@@ -1,0 +1,62 @@
+@model List<dynamic>
+
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">📄 Reporte Histórico de Recetas</h2>
+        <a href="@Url.Action("Index", "Recepcionista")" class="btn btn-outline-secondary fw-bold">⬅️ Volver al Panel</a>
+    </div>
+    <hr />
+
+    <!-- Buscador -->
+    <form asp-action="ReporteRecetas" method="get" class="mb-4 bg-light p-3 border rounded shadow-sm">
+        <div class="row align-items-end">
+            <div class="col-md-8">
+                <label class="form-label fw-bold">Buscar por Nombre del Médico o Cédula Profesional:</label>
+                <input type="text" name="filtro" value="@ViewBag.FiltroActual" class="form-control" placeholder="Ej. Gómez o 12345678" />
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary fw-bold w-100">Buscar Recetas</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Resultados -->
+    <table class="table table-hover table-bordered mt-2 shadow-sm">
+        <thead class="table-primary">
+            <tr>
+                <th>No. Receta</th>
+                <th>Fecha</th>
+                <th>Paciente</th>
+                <th>Médico Emisor</th>
+                <th>Diagnóstico</th>
+                <th>Medicamentos</th>
+                <th>Tratamiento</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count > 0)
+            {
+                foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="fw-bold text-primary">#@r.NumReceta</td>
+                        <td>@r.Fecha</td>
+                        <td>@r.Paciente</td>
+                        <td class="fw-bold text-dark">@r.Medico</td>
+                        <td>@r.Diagnostico</td>
+                        <td><small>@r.Medicamentos</small></td>
+                        <td><small>@r.Tratamiento</small></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        @(string.IsNullOrEmpty((string)ViewBag.FiltroActual) ? "Ingresa un filtro para buscar las recetas del médico." : "No se encontraron recetas para este médico o cédula.")
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
